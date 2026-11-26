@@ -1,0 +1,55 @@
+{
+  "rules": [
+    {
+      "id": "swift-no-force-try-cast",
+      "include": [
+        ""
+      ],
+      "ext": [
+        ".swift"
+      ],
+      "pattern": "\\btry!|\\bas!",
+      "why": "Force try/cast crashes at runtime; agents use it to silence the compiler.",
+      "fix": "Handle the error with do/catch or `try?` and a fallback; use `as?` with a guard."
+    },
+    {
+      "id": "swift-no-lint-disable",
+      "include": [
+        ""
+      ],
+      "ext": [
+        ".swift"
+      ],
+      "pattern": "swiftlint:disable",
+      "why": "Disabling the linter inline hides the problem.",
+      "fix": "Fix the code, or change .swiftlint.yml in a reviewed PR."
+    },
+    {
+      "id": "swift-no-workaround-comments",
+      "include": [
+        ""
+      ],
+      "ext": [
+        ".swift"
+      ],
+      "pattern": "//.*\\b(hack|workaround|temporary fix|quick fix|for now)\\b",
+      "flags": "i",
+      "why": "Comments that justify a shortcut get copied by the next agent.",
+      "fix": "Fix the root cause and delete the comment."
+    },
+    {
+      "id": "c-no-workaround-comments",
+      "include": [
+        ""
+      ],
+      "ext": [
+        ".c",
+        ".h"
+      ],
+      "pattern": "//.*\\b(hack|workaround|temporary fix|quick fix|for now)\\b",
+      "flags": "i",
+      "why": "Comments that justify a shortcut get copied by the next agent.",
+      "fix": "Fix the root cause and delete the comment."
+    }
+  ]
+}
