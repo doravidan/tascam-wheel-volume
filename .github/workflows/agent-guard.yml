@@ -1,0 +1,47 @@
+name: agent-guard
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, labeled, unlabeled]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: Banned patterns (ratchet)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node tools/agent-guard/agent-guard.mjs
+
+  proof:
+    name: PR carries proof
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the PR body for a Proof section with evidence
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          if [[ ",$LABELS," == *",no-proof-needed,"* ]]; then
+            echo "Label no-proof-needed set; skipping."
+            exit 0
+          fi
+          proof=$(printf '%s\n' "$BODY" | awk 'tolower($0) ~ /^##+ *proof/{f=1;next} /^##+ /{f=0} f')
+          if [ -z "$(printf '%s' "$proof" | tr -d '[:space:]')" ]; then
+            echo "::error::Add a '## Proof' section: screenshots, a video, or pasted test/run output showing the change works."
+            exit 1
+          fi
+          if printf '%s' "$proof" | grep -Eqi '!\[|<img|<video|https?://|```'; then
+            echo "Proof found."
+          else
+            echo "::error::The Proof section has no evidence. Attach a screenshot/video, link a recording, or paste command output in a code block."
+            exit 1
+          fi
